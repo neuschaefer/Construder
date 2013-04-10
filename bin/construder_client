@@ -12,7 +12,7 @@ Games::Construder::Debug::init ("client");
 
 our $game = eval { Games::Construder::Client->new (auto_login => $ARGV[0]) };
 if ($@) {
-   ctr_log (error => "Couldn't initialized client: %s", $@);
+   ctr_log (error => "Couldn't initialize client: %s", $@);
    exit 1;
 }
 
