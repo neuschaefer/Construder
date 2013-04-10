@@ -50,7 +50,10 @@ Games::Construder::Client::Frontend - Client Rendering, Physics, Keyboard handli
 
 =cut
 
-my ($WIDTH, $HEIGHT) = (800, 600);
+my ($WIDTH, $HEIGHT) = (800, 600);  # current resolution
+my ($FWIDTH, $FHEIGHT) = (123, 123);# resolution in fullscreen mode
+my ($WWIDTH, $WHEIGHT) = (123, 123);# resolution in window mode
+my $FULLSCREEN = 0;                 # are we running in fullscreen mode?
 my $DEPTH = 24;
 my $UPDATE_P_FRAME = 25;
 
@@ -143,6 +146,13 @@ sub resize_app {
 
 sub init_app {
    my ($self) = @_;
+
+   # Determine the screen (aka desktop) size for use in the fullscreen setting
+   # code. This method seems rather hacky to me (jn) and depends on SDL 1.2.10.
+   SDL::init(SDL::SDL_INIT_EVERYTHING);
+   my $vinfo = SDL::Video::get_video_info();
+   ($FWIDTH, $FHEIGHT) = ($vinfo->current_w(), $vinfo->current_h());
+
    $self->{app} = SDLx::App->new (
       title  => "Construder " . $Games::Construder::VERSION . "alpha",
       width  => $WIDTH,
@@ -1216,6 +1226,30 @@ sub show_credits {
    ));
 }
 
+# Enter or leave fullscreen mode, depending on the current state.
+# In fullscreen mode always use the resolution the screen already has.
+sub toggle_fullscreen {
+   my ($self) = @_;
+
+   if ($FULLSCREEN) {
+      # After leaving fullscreen mode with the mouse captured we get
+      # spurious resize events with the fullscreen size. (WHY??)
+      my $look_lock = $self->{look_lock};
+      $self->change_look_lock(0) if $look_lock;
+
+      $self->{app}->fullscreen;
+      $self->resize_app($WWIDTH, $WHEIGHT);
+      $FULLSCREEN = 0;
+
+      $self->change_look_lock(1) if $look_lock;
+   } else {
+      ($WWIDTH, $WHEIGHT) = ($WIDTH, $HEIGHT);
+      $self->resize_app($FWIDTH, $FHEIGHT);
+      $self->{app}->fullscreen;
+      $FULLSCREEN = 1;
+   }
+}
+
 sub esc_menu {
    my ($self) = @_;
 
@@ -1276,7 +1310,7 @@ sub esc_menu {
             return 1;
 
          } elsif ($cmd eq 'fullscreen') {
-            $self->{app}->fullscreen;
+            $self->toggle_fullscreen;
          }
       }
    });

@@ -1,7 +1,9 @@
 Revision history for Games::Construder
 
 upcoming / not yet released
-	- ui: show the actual version in the window title, instead of 0.01.
+        - ui: show the actual version in the window title, instead of 0.01.
+        - ui: Use the current screen (aka desktop) size/resolution, instead
+          of the window size in fullscreen mode.
 
 0.95    Mon Jul 18 16:41:30 CEST 2011
         - gameplay: added jumper items, which can teleport the player
